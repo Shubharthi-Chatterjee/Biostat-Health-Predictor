@@ -6,10 +6,10 @@ import hashlib
 st.set_page_config(
     page_title="BioStat Pro | Health Risk Insights", 
     page_icon="🧬", 
-    layout="wide" # Switches to a modern wide-screen dashboard layout
+    layout="wide"
 )
 
-# Custom CSS trick to add a modern drop shadow to container blocks
+# Custom CSS for UI styling
 st.markdown("""
     <style>
     div[data-testid="stVerticalBlock"] > div:has(div.element-container) {
@@ -25,7 +25,7 @@ st.markdown("# 🧬 BioStat Pro")
 st.markdown("### *Advanced 5-Year Statistical Demographic Risk Engine*")
 st.write("---")
 
-# 3. Sidebar Configuration (Clean Separation of Concerns)
+# 3. Sidebar Configuration
 st.sidebar.image("https://img.icons8.com/fluent/96/000000/medical-doctor.png", width=80)
 st.sidebar.markdown("## Navigation & Setup")
 st.sidebar.caption("Configure global analytical properties.")
@@ -38,8 +38,8 @@ with col_form:
     st.markdown("#### 📋 Patient Intake Portal")
     with st.container(border=True):
         with st.form("prediction_form", clear_on_submit=False):
+            # REMOVED NATIONAL ID - Only Name is requested now
             name = st.text_input("Patient Full Name", placeholder="e.g., Shubharthi Chatterjee")
-            unique_id = st.text_input("Unique National Health ID / Registration No.", placeholder="e.g., UID-9012-7654")
             
             c1, c2 = st.columns(2)
             with c1:
@@ -57,9 +57,11 @@ with col_info:
         st.info("**Methodology:** This system cross-references simple epidemiological profiles with regional cluster distributions to calculate macro-level trend risks.")
         st.write("Demographic-driven predictive engines are critical for primary healthcare mapping and preventive wellness resource allocation over multi-year horizons.")
 
-# 5. Prediction Logic
-def calculate_probabilities(age_val, gender_val, unique_id_str):
-    hasher = hashlib.md5(unique_id_str.encode())
+# 5. Updated Prediction Logic (Using Name + Age as the seed generation block)
+def calculate_probabilities(name_str, age_val, gender_val):
+    # Generates a consistent hash string combination using Name and Age
+    seed_string = f"{name_str.lower().strip()}_{age_val}"
+    hasher = hashlib.md5(seed_string.encode())
     seed_number = int(hasher.hexdigest(), 16) % (10**6)
     random.seed(seed_number)
     
@@ -84,17 +86,16 @@ def calculate_probabilities(age_val, gender_val, unique_id_str):
 
 # 6. Presentation Output Area
 if submit_button:
-    if not name or not unique_id or gender == "Select" or not city or not country:
+    # Updated validation profile checking for name field only
+    if not name or gender == "Select" or not city or not country:
         st.toast("⚠️ Data processing halted: Missing required fields.", icon="❌")
         st.error("Please ensure all fields in the Patient Intake Portal are completely filled out.")
     else:
         st.toast("Processing cohort statistics...", icon="🔄")
         st.write("---")
         
-        # Display Results Area
         st.markdown(f"### 📊 Clinical Analytics Report: {name}")
         
-        # Split Results Into Tabs for clean UX design
         tab_summary, tab_metrics, tab_recommendations = st.tabs([
             "📋 Patient Summary Card", 
             "📈 5-Year Risk Matrix", 
@@ -102,21 +103,19 @@ if submit_button:
         ])
         
         with tab_summary:
-            c_card1, c_card2, c_card3 = st.columns(3)
+            c_card1, c_card2 = st.columns(2)
             with c_card1:
-                st.metric(label="Patient ID", value=unique_id[:10] + "...")
-            with c_card2:
                 st.metric(label="Age Profile", value=f"{age} Yrs", delta=f"{gender}")
-            with c_card3:
+            with c_card2:
                 st.metric(label="Epidemiological Location", value=f"{city}, {country[:3].upper()}")
         
         with tab_metrics:
-            predictions = calculate_probabilities(age, gender, unique_id)
+            # Updated function call parameters
+            predictions = calculate_probabilities(name, age, gender)
             
             for disease, probability in predictions.items():
                 display_prob = min(round(probability, 2), 100.0)
                 
-                # Dynamic coloring context based on calculation risk severity
                 if display_prob > 40:
                     status_color = "🔴 High Relational Risk"
                 elif 20 <= display_prob <= 40:
@@ -124,7 +123,6 @@ if submit_button:
                 else:
                     status_color = "🟢 Baseline Control Risk"
                 
-                # Designer metric display box
                 with st.container(border=True):
                     st.markdown(f"##### **{disease}**")
                     st.progress(display_prob / 100)
