@@ -9,13 +9,24 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS for UI styling
+# Custom CSS for Premium Dark UI styling
 st.markdown("""
     <style>
+    /* Style container blocks to match the dark aesthetic */
     div[data-testid="stVerticalBlock"] > div:has(div.element-container) {
-        background-color: #ffffff;
+        background-color: #1E222B;
+        border: 1px solid #2D3139;
         border-radius: 10px;
-        padding: 10px;
+        padding: 16px;
+    }
+    /* Ensure markdown text flows beautifully */
+    h1, h2, h3, h4, h5, h6, p {
+        color: #FAFAFA !important;
+    }
+    /* Add a subtle neon accent color to links or special values */
+    code {
+        color: #00D2FF !important;
+        background-color: #262730 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -38,7 +49,6 @@ with col_form:
     st.markdown("#### 📋 Patient Intake Portal")
     with st.container(border=True):
         with st.form("prediction_form", clear_on_submit=False):
-            # REMOVED NATIONAL ID - Only Name is requested now
             name = st.text_input("Patient Full Name", placeholder="e.g., Shubharthi Chatterjee")
             
             c1, c2 = st.columns(2)
@@ -57,9 +67,8 @@ with col_info:
         st.info("**Methodology:** This system cross-references simple epidemiological profiles with regional cluster distributions to calculate macro-level trend risks.")
         st.write("Demographic-driven predictive engines are critical for primary healthcare mapping and preventive wellness resource allocation over multi-year horizons.")
 
-# 5. Updated Prediction Logic (Using Name + Age as the seed generation block)
+# 5. Prediction Logic
 def calculate_probabilities(name_str, age_val, gender_val):
-    # Generates a consistent hash string combination using Name and Age
     seed_string = f"{name_str.lower().strip()}_{age_val}"
     hasher = hashlib.md5(seed_string.encode())
     seed_number = int(hasher.hexdigest(), 16) % (10**6)
@@ -86,7 +95,6 @@ def calculate_probabilities(name_str, age_val, gender_val):
 
 # 6. Presentation Output Area
 if submit_button:
-    # Updated validation profile checking for name field only
     if not name or gender == "Select" or not city or not country:
         st.toast("⚠️ Data processing halted: Missing required fields.", icon="❌")
         st.error("Please ensure all fields in the Patient Intake Portal are completely filled out.")
@@ -110,12 +118,12 @@ if submit_button:
                 st.metric(label="Epidemiological Location", value=f"{city}, {country[:3].upper()}")
         
         with tab_metrics:
-            # Updated function call parameters
             predictions = calculate_probabilities(name, age, gender)
             
             for disease, probability in predictions.items():
                 display_prob = min(round(probability, 2), 100.0)
                 
+                # Colors adapted to stand out elegantly against dark elements
                 if display_prob > 40:
                     status_color = "🔴 High Relational Risk"
                 elif 20 <= display_prob <= 40:
@@ -126,7 +134,7 @@ if submit_button:
                 with st.container(border=True):
                     st.markdown(f"##### **{disease}**")
                     st.progress(display_prob / 100)
-                    st.caption(f"Statistical Probability Trend: `{display_prob}%` | Status classification: **{status_color}**")
+                    st.markdown(f"Statistical Probability Trend: `{display_prob}%` | Status classification: **{status_color}**")
         
         with tab_recommendations:
             st.markdown("##### Suggested Clinical Protocol Adjustments")
