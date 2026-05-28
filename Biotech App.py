@@ -9,21 +9,53 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS for Premium Dark UI styling
+# 2. Strict Full-Page Dark Theme CSS Injection
 st.markdown("""
     <style>
-    /* Style container blocks to match the dark aesthetic */
-    div[data-testid="stVerticalBlock"] > div:has(div.element-container) {
-        background-color: #1E222B;
-        border: 1px solid #2D3139;
-        border-radius: 10px;
-        padding: 16px;
-    }
-    /* Ensure markdown text flows beautifully */
-    h1, h2, h3, h4, h5, h6, p {
+    /* Force main app background and container spaces to dark */
+    .stApp {
+        background-color: #0E1117 !important;
         color: #FAFAFA !important;
     }
-    /* Add a subtle neon accent color to links or special values */
+    
+    /* Global Text Styling overrides */
+    h1, h2, h3, h4, h5, h6, p, label, span, li {
+        color: #FAFAFA !important;
+    }
+    
+    /* Style all structural containers and form borders */
+    div[data-testid="stVerticalBlock"] > div:has(div.element-container), 
+    .stForm, div[data-testid="stMetricBlock"] {
+        background-color: #1E222B !important;
+        border: 1px solid #2D3139 !important;
+        border-radius: 10px !important;
+        padding: 18px !important;
+    }
+
+    /* Style Sidebar to matching charcoal hue */
+    section[data-testid="stSidebar"] {
+        background-color: #161920 !important;
+        border-right: 1px solid #2D3139 !important;
+    }
+    
+    /* Style input element fields */
+    input, select, div[role="listbox"], .stSelectbox, .stNumberInput {
+        background-color: #161920 !important;
+        color: #FAFAFA !important;
+        border: 1px solid #3A3F4B !important;
+        border-radius: 6px !important;
+    }
+    
+    /* Tabs customization to eliminate standard bright background lines */
+    button[data-baseweb="tab"] {
+        color: #8A92A6 !important;
+    }
+    button[aria-selected="true"] {
+        color: #00D2FF !important;
+        border-bottom-color: #00D2FF !important;
+    }
+    
+    /* Text Highlight formatting code block adjustment */
     code {
         color: #00D2FF !important;
         background-color: #262730 !important;
@@ -31,23 +63,23 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 2. Header Dashboard Banner
+# 3. Header Dashboard Banner
 st.markdown("# 🧬 BioStat Pro")
 st.markdown("### *Advanced 5-Year Statistical Demographic Risk Engine*")
 st.write("---")
 
-# 3. Sidebar Configuration
+# 4. Sidebar Configuration
 st.sidebar.image("https://img.icons8.com/fluent/96/000000/medical-doctor.png", width=80)
 st.sidebar.markdown("## Navigation & Setup")
 st.sidebar.caption("Configure global analytical properties.")
 analytics_mode = st.sidebar.radio("Data Engine Model", ["Standard Baseline", "Regional Weighted Trend"])
 
-# 4. Main Interface Columns
+# 5. Main Interface Columns
 col_form, col_info = st.columns([2, 1], gap="large")
 
 with col_form:
     st.markdown("#### 📋 Patient Intake Portal")
-    with st.container(border=True):
+    with st.container():
         with st.form("prediction_form", clear_on_submit=False):
             name = st.text_input("Patient Full Name", placeholder="e.g., Shubharthi Chatterjee")
             
@@ -63,11 +95,11 @@ with col_form:
 
 with col_info:
     st.markdown("#### 💡 Engine Overview")
-    with st.container(border=True):
+    with st.container():
         st.info("**Methodology:** This system cross-references simple epidemiological profiles with regional cluster distributions to calculate macro-level trend risks.")
         st.write("Demographic-driven predictive engines are critical for primary healthcare mapping and preventive wellness resource allocation over multi-year horizons.")
 
-# 5. Prediction Logic
+# 6. Prediction Logic
 def calculate_probabilities(name_str, age_val, gender_val):
     seed_string = f"{name_str.lower().strip()}_{age_val}"
     hasher = hashlib.md5(seed_string.encode())
@@ -93,7 +125,7 @@ def calculate_probabilities(name_str, age_val, gender_val):
             "Degenerative Osteoarthritis": random.uniform(20, 50)
         }
 
-# 6. Presentation Output Area
+# 7. Presentation Output Area
 if submit_button:
     if not name or gender == "Select" or not city or not country:
         st.toast("⚠️ Data processing halted: Missing required fields.", icon="❌")
@@ -123,7 +155,6 @@ if submit_button:
             for disease, probability in predictions.items():
                 display_prob = min(round(probability, 2), 100.0)
                 
-                # Colors adapted to stand out elegantly against dark elements
                 if display_prob > 40:
                     status_color = "🔴 High Relational Risk"
                 elif 20 <= display_prob <= 40:
@@ -131,7 +162,7 @@ if submit_button:
                 else:
                     status_color = "🟢 Baseline Control Risk"
                 
-                with st.container(border=True):
+                with st.container():
                     st.markdown(f"##### **{disease}**")
                     st.progress(display_prob / 100)
                     st.markdown(f"Statistical Probability Trend: `{display_prob}%` | Status classification: **{status_color}**")
